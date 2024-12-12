@@ -1,0 +1,9 @@
+flask
+flask-cors
+m3u8
+requests
+psutil
+schedule
+certifi
+ffmpeg-python
+pycryptodome

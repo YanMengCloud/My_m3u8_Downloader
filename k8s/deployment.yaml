@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m3u8-downloader
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: m3u8-downloader
+  template:
+    metadata:
+      labels:
+        app: m3u8-downloader
+    spec:
+      containers:
+      - name: m3u8-downloader
+        image: m3u8-downloader:latest
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: temp-storage
+          mountPath: /app/temp
+        - name: upload-storage
+          mountPath: /app/uploads
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: temp-storage
+        emptyDir: {}
+      - name: upload-storage
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: m3u8-downloader
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 5000
+    nodePort: 30080
+  selector:
+    app: m3u8-downloader 

@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M3U8视频下载器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger-color: #dc2626;
+            --danger-hover: #b91c1c;
+            --success-color: #16a34a;
+            --success-hover: #15803d;
+            --background-color: #f9fafb;
+            --card-background: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--background-color);
+            line-height: 1.5;
+            padding: 2rem;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card-background);
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 2rem;
+            gap: 0.5rem;
+        }
+
+        .tab-button {
+            background: transparent;
+            border: none;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .tab-button:hover {
+            color: var(--primary-hover);
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        button,
+        input[type="submit"] {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover,
+        input[type="submit"]:hover {
+            background: var(--primary-hover);
+        }
+
+        .task-item {
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .task-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .task-info-item {
+            padding: 0.75rem;
+            background: var(--background-color);
+            border-radius: 0.5rem;
+        }
+
+        .task-info-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .task-info-value {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .task-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .task-controls button {
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .task-controls button.delete {
+            background-color: var(--danger-color);
+        }
+
+        .task-controls button.delete:hover {
+            background-color: var(--danger-hover);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: var(--border-color);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 1.5rem;
+            background: var(--card-background);
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .settings-panel {
+            background: var(--background-color);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 0.75rem;
+        }
+
+        .settings-panel h2 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            gap: 1rem;
+        }
+
+        .settings-item label {
+            min-width: 200px;
+            color: var(--text-secondary);
+        }
+
+        .encryption-info {
+            background: var(--background-color);
+            padding: 1.25rem;
+            margin: 1rem 0;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .encryption-info .info-text {
+            color: var(--text-secondary);
+            margin: 0;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .encryption-info ul {
+            margin: 0.75rem 0 0 1.25rem;
+            padding: 0;
+        }
+
+        .encryption-info li {
+            margin: 0.5rem 0;
+            color: var(--text-secondary);
+        }
+
+        .tasks-container {
+            margin-top: 2rem;
+        }
+
+        .tasks-container h2 {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .task-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .task-controls {
+                flex-direction: column;
+            }
+            
+            .settings-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .settings-item label {
+                min-width: auto;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        /* 系统资源圆形进度条样式 */
+        .resource-circle {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resource-circle svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .resource-circle circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .resource-circle .background {
+            stroke: var(--border-color);
+        }
+
+        .resource-circle .progress {
+            stroke: var(--primary-color);
+            stroke-dasharray: 301.59;  /* 2 * π * 48 (圆的周长) */
+            stroke-dashoffset: 301.59;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .resource-circle.warning .progress {
+            stroke: #f59e0b;
+        }
+
+        .resource-circle.danger .progress {
+            stroke: var(--danger-color);
+        }
+
+        .resource-value {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .resource-label {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>M3U8视频下载器</h1>
+        
+        <!-- 标签页按钮 -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('download')">URL下载</button>
+            <button class="tab-button" onclick="showTab('upload')">上传文件下载</button>
+            <button class="tab-button" onclick="showTab('settings')">系统设置</button>
+        </div>
+        
+        <!-- URL下载标签页 -->
+        <div id="download" class="tab-content active">
+            <form id="download-form">
+                <div class="form-group">
+                    <textarea name="m3u8_url" placeholder="请输入M3U8地址（每行一个地址）" required rows="5"></textarea>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="filename" placeholder="自定义文件名（可选）">
+                </div>
+                <div class="form-group">
+                    <select name="format_type">
+                        <option value="mp4">MP4</option>
+                        <option value="mkv">MKV</option>
+                        <option value="ts">TS</option>
+                    </select>
+                </div>
+                <div class="encryption-info">
+                    <p class="info-text">
+                        注意：系统支持自动解密 AES-128-CBC 加密的流。以下选项仅在以下情况下需要填写：
+                        <ul>
+                            <li>M3U8 文件中未提供密钥信息时</li>
+                            <li>需要覆盖默认的密钥信息时</li>
+                            <li>需要使用自定义 IV 时</li>
+                        </ul>
+                    </p>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="key_url" placeholder="密钥URL（可选，用于AES-128-CBC加密）">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="iv" placeholder="IV（可选，用于AES-128-CBC加密）">
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="开始下载">
+                </div>
+            </form>
+            
+            <div class="tasks-container">
+                <h2>URL下载任务</h2>
+                <div id="url-tasks-list"></div>
+            </div>
+        </div>
+        
+        <!-- 文件上传标签页 -->
+        <div id="upload" class="tab-content">
+            <form id="upload-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <input type="file" name="file" accept=".m3u8,.txt" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="filename" placeholder="自定义文件名（可选）">
+                </div>
+                <div class="form-group">
+                    <select name="format_type">
+                        <option value="mp4">MP4</option>
+                        <option value="mkv">MKV</option>
+                        <option value="ts">TS</option>
+                    </select>
+                </div>
+                <div class="encryption-info">
+                    <p class="info-text">
+                        注意：系统支持自动解密 AES-128-CBC 加密的流。以下选项仅在以下情况下需要填写：
+                        <ul>
+                            <li>M3U8 文件中未提供密钥信息时</li>
+                            <li>需要覆盖默认的密钥信息时</li>
+                            <li>需要使用自定义 IV 时</li>
+                        </ul>
+                    </p>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="key_url" placeholder="密钥URL（可选，用于AES-128-CBC加密）">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="iv" placeholder="IV（可选，用于AES-128-CBC加密）">
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="上传并下载">
+                </div>
+            </form>
+            
+            <div class="tasks-container">
+                <h2>下载任务</h2>
+                <div id="upload-tasks-list"></div>
+            </div>
+        </div>
+        
+        <!-- 系统设置标签页 -->
+        <div id="settings" class="tab-content">
+            <div class="settings-panel">
+                <h2>系统设置</h2>
+                <div class="settings-item">
+                    <label>最大并发下载数：</label>
+                    <input type="number" id="max-concurrent" min="1" max="10" value="3">
+                </div>
+                <div class="settings-item">
+                    <label>下载速度限制 (MB/s)：</label>
+                    <input type="number" id="speed-limit" min="0" step="0.1" value="0">
+                </div>
+                <div class="settings-item">
+                    <label>临时文件保留天数：</label>
+                    <input type="number" id="cleanup-days" min="1" value="7">
+                </div>
+                <div class="settings-item">
+                    <label>SSL证书验证：</label>
+                    <input type="checkbox" id="verify-ssl" checked>
+                </div>
+                <div class="form-group">
+                    <button onclick="saveSettings()">保存设置</button>
+                </div>
+            </div>
+            
+            <div class="settings-panel">
+                <h2>系统资源使用情况</h2>
+                <div style="display: flex; justify-content: space-around; margin: 2rem 0;">
+                    <div class="resource-circle" id="cpu-circle">
+                        <svg viewBox="0 0 120 120">
+                            <circle class="background" cx="60" cy="60" r="48"/>
+                            <circle class="progress" cx="60" cy="60" r="48"/>
+                        </svg>
+                        <span class="resource-value">0%</span>
+                        <span class="resource-label">CPU</span>
+                    </div>
+                    <div class="resource-circle" id="memory-circle">
+                        <svg viewBox="0 0 120 120">
+                            <circle class="background" cx="60" cy="60" r="48"/>
+                            <circle class="progress" cx="60" cy="60" r="48"/>
+                        </svg>
+                        <span class="resource-value">0%</span>
+                        <span class="resource-label">内存</span>
+                    </div>
+                    <div class="resource-circle" id="disk-circle">
+                        <svg viewBox="0 0 120 120">
+                            <circle class="background" cx="60" cy="60" r="48"/>
+                            <circle class="progress" cx="60" cy="60" r="48"/>
+                        </svg>
+                        <span class="resource-value">0%</span>
+                        <span class="resource-label">磁盘</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 标��页切换功能
+        function showTab(tabId) {
+            // 隐藏所有标签页
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 取消所有按钮的激活状态
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // 显示选中的标签页
+            document.getElementById(tabId).classList.add('active');
+            
+            // 激活对应的按钮
+            event.target.classList.add('active');
+        }
+        
+        // 更新任务列表
+        async function fetchWithError(url, options = {}) {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response;
+        }
+        
+        async function updateTasks() {
+            try {
+                const response = await fetchWithError('/tasks');
+                const tasks = await response.json();
+                
+                // 分离URL下载和文件上传任务
+                const urlTasksList = document.getElementById('url-tasks-list');
+                const uploadTasksList = document.getElementById('upload-tasks-list');
+                
+                urlTasksList.innerHTML = '';
+                uploadTasksList.innerHTML = '';
+                
+                tasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'task-item';
+                    taskElement.setAttribute('data-status', task.status);
+                    taskElement.innerHTML = `
+                        <div class="task-header">
+                            <div class="task-info-item">
+                                <span class="task-info-label">文件名:</span>
+                                <span class="task-info-value">${task.filename}</span>
+                            </div>
+                            <div class="task-controls">
+                                ${task.status === 'downloading' ? 
+                                    `<button class="pause" onclick="pauseTask('${task.task_id}')">暂停</button>` : 
+                                    task.status === 'paused' ? 
+                                    `<button class="resume" onclick="resumeTask('${task.task_id}')">继续</button>` : 
+                                    ''
+                                }
+                                ${['downloading', 'paused'].includes(task.status) ? 
+                                    `<button class="cancel" onclick="cancelTask('${task.task_id}')">取消</button>` : 
+                                    ''
+                                }
+                                ${task.status === 'completed' ? 
+                                    `<button onclick="window.location.href='/download_file/${task.task_id}'">下载</button>` : 
+                                    ''
+                                }
+                                <button class="delete" onclick="deleteTask('${task.task_id}')">删除</button>
+                            </div>
+                        </div>
+                        <div class="task-info">
+                            <div class="task-info-item">
+                                <span class="task-info-label">URL:</span>
+                                <span class="task-info-value" style="word-break: break-all;">${task.url}</span>
+                            </div>
+                            <div class="task-info-item">
+                                <span class="task-info-label">状态:</span>
+                                <span class="task-info-value">${task.status}</span>
+                            </div>
+                            <div class="task-info-item">
+                                <span class="task-info-label">下载速度:</span>
+                                <span class="task-info-value">${task.speed}</span>
+                            </div>
+                            <div class="task-info-item">
+                                <span class="task-info-label">剩余时间:</span>
+                                <span class="task-info-value">${task.estimated_time}</span>
+                            </div>
+                            <div class="task-info-item">
+                                <span class="task-info-label">总大小:</span>
+                                <span class="task-info-value">${task.total_size}</span>
+                            </div>
+                            <div class="task-info-item">
+                                <span class="task-info-label">已下载:</span>
+                                <span class="task-info-value">${task.downloaded_size}</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: ${task.progress}%"></div>
+                        </div>
+                    `;
+                    
+                    // 根据任务来分配到不同的列表
+                    if (task.url.startsWith('file://')) {
+                        uploadTasksList.appendChild(taskElement);
+                    } else {
+                        urlTasksList.appendChild(taskElement);
+                    }
+                });
+            } catch (error) {
+                console.error('更新任务列表失败:', error);
+            }
+        }
+
+        // 定期更新任务列表
+        setInterval(updateTasks, 1000);
+
+        // 暂停任务
+        async function pauseTask(taskId) {
+            try {
+                await fetch(`/task/${taskId}/pause`, { method: 'POST' });
+                updateTasks();
+            } catch (error) {
+                console.error('暂停任务失败:', error);
+            }
+        }
+
+        // 继续任务
+        async function resumeTask(taskId) {
+            try {
+                await fetch(`/task/${taskId}/resume`, { method: 'POST' });
+                updateTasks();
+            } catch (error) {
+                console.error('继续任务失败:', error);
+            }
+        }
+
+        // 取消任务
+        async function cancelTask(taskId) {
+            if (confirm('确定要取消这个下载任务吗？')) {
+                try {
+                    await fetch(`/task/${taskId}/cancel`, { method: 'POST' });
+                    updateTasks();
+                } catch (error) {
+                    console.error('取消任务失败:', error);
+                }
+            }
+        }
+
+        // 提交下载表单
+        document.getElementById('download-form').onsubmit = async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            // 处理多个URL
+            const urls = formData.get('m3u8_url').split('\n');
+            formData.delete('m3u8_url');
+            urls.forEach(url => {
+                if (url.trim()) {
+                    formData.append('m3u8_url', url.trim());
+                }
+            });
+            
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                updateTasks();
+            } catch (error) {
+                console.error('创建下载任务失败:', error);
+            }
+        };
+
+        // 页面加载时更新任务列表
+        updateTasks();
+
+        // 文件上传处理
+        document.getElementById('upload-form').onsubmit = async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    updateTasks();
+                }
+            } catch (error) {
+                console.error('上传失败:', error);
+                alert('上传失败');
+            }
+        };
+        
+        // 在 script 标签中添加系统资源更新函数
+        async function updateSystemResources() {
+            try {
+                const response = await fetch('/system_resources');
+                const data = await response.json();
+                
+                updateResourceValue('cpu', data.cpu_percent);
+                updateResourceValue('memory', data.memory_percent);
+                updateResourceValue('disk', data.disk_usage);
+            } catch (error) {
+                console.error('更新系统资源信息失败:', error);
+            }
+        }
+
+        function updateResourceValue(elementId, value) {
+            const circle = document.getElementById(elementId + '-circle');
+            const valueElement = circle.querySelector('.resource-value');
+            const progressCircle = circle.querySelector('.progress');
+            
+            // 更新数值
+            valueElement.textContent = value.toFixed(1) + '%';
+            
+            // 更新进度圈
+            const circumference = 2 * Math.PI * 48;
+            const offset = circumference - (value / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+            
+            // 移除所有现有的状态类
+            circle.classList.remove('warning', 'danger');
+            
+            // 根据使用率添加对应的状态类
+            if (value >= 90) {
+                circle.classList.add('danger');
+            } else if (value >= 70) {
+                circle.classList.add('warning');
+            }
+        }
+
+        // 定期更新系统资源信息
+        setInterval(updateSystemResources, 2000);
+
+        // 在页面加载时也更新一次
+        updateSystemResources();
+
+        // 添加删除任务的函数
+        async function deleteTask(taskId) {
+            if (confirm('确定要删除这个任务吗？')) {
+                try {
+                    const response = await fetch(`/task/${taskId}/delete`, { method: 'POST' });
+                    if (response.ok) {
+                        updateTasks();
+                    } else {
+                        console.error('删除任务失败');
+                    }
+                } catch (error) {
+                    console.error('删除任务失败:', error);
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

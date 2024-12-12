@@ -1,0 +1,24 @@
+version: '3'
+services:
+  m3u8-downloader:
+    build: .
+    volumes:
+      - ./temp:/app/temp
+      - ./uploads:/app/uploads
+      - ./templates:/app/templates
+      - ./static:/app/static
+      - ./app.py:/app/app.py
+      - ./database.py:/app/database.py
+      - ./data:/app/data
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+      - FLASK_DEBUG=1
+      - FLASK_RUN_HOST=0.0.0.0
+      - FLASK_RUN_PORT=7101
+      - PYTHONUNBUFFERED=1
+      - DATABASE_PATH=/app/data/downloads.db
+    ports:
+      - "7101:7101"
+    restart: unless-stopped
+    command: python -u app.py
