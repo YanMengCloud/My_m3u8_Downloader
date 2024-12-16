@@ -539,151 +539,129 @@ function showPreview(task) {
                 return;
             }
 
-            // 创建预览图HTML
-            const previewsHtml = previews.map(preview => `
-                <div class="preview-item">
+            // 使用预览模态框模板
+            const modalTemplate = document.getElementById('previewModalTemplate');
+            const modalContent = modalTemplate.content.cloneNode(true);
+            document.body.appendChild(modalContent);
+
+            const modal = document.querySelector('.modal-overlay');
+            const closeButton = modal.querySelector('.modal-close');
+            const previewGrid = modal.querySelector('.preview-grid');
+
+            // 添加预览图样式
+            const styleElement = document.createElement('style');
+            styleElement.textContent = `
+                .preview-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 1.5rem;
+                    margin-bottom: 1rem;
+                    padding: 1rem;
+                }
+                .preview-item {
+                    position: relative;
+                    border-radius: 0.5rem;
+                    overflow: hidden;
+                    cursor: pointer;
+                    aspect-ratio: 16/9;
+                }
+                .preview-image {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    border-radius: 0.5rem;
+                    transition: transform 0.2s;
+                }
+                .preview-image:hover {
+                    transform: scale(1.05);
+                }
+                .preview-timestamp {
+                    position: absolute;
+                    bottom: 0.5rem;
+                    right: 0.5rem;
+                    background: rgba(0, 0, 0, 0.7);
+                    color: white;
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 0.25rem;
+                    font-size: 0.875rem;
+                }
+            `;
+            modal.appendChild(styleElement);
+
+            // 加载预览图
+            previews.forEach(preview => {
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+                previewItem.innerHTML = `
                     <img src="${preview.url}" alt="视频预览" class="preview-image" 
                          onerror="this.onerror=null;this.src='/static/images/no-preview.png';"
-                         onclick="showFullImage(this.src)">
+                         onclick="showFullImage('${preview.url}')">
                     <div class="preview-timestamp">${formatDuration(preview.timestamp)}</div>
-                </div>
-            `).join('');
+                `;
+                previewGrid.appendChild(previewItem);
+            });
 
-            const content = `
-                <div class="preview-grid">
-                    ${previewsHtml}
-                </div>
-                <div class="preview-info">
-                    <p class="filename">${task.filename || '未命名视频'}</p>
-                    <div class="preview-actions">
-                        <button onclick="downloadPreviews('${task.task_id}')" class="preview-download-btn">
-                            <i class="mdi mdi-image-multiple"></i> 下载所有预览图
-                        </button>
-                        <button onclick="downloadVideoInfo('${task.task_id}')" class="preview-info-btn">
-                            <i class="mdi mdi-information"></i> 下载视频信息
-                        </button>
-                    </div>
-                </div>
-                <style>
-                    .preview-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                        gap: 1rem;
-                        margin-bottom: 1rem;
-                    }
-                    .preview-item {
-                        position: relative;
-                        border-radius: 0.5rem;
-                        overflow: hidden;
-                        cursor: pointer;
-                    }
-                    .preview-image {
-                        width: 100%;
-                        height: 200px;
-                        object-fit: cover;
-                        border-radius: 0.5rem;
-                        transition: transform 0.2s;
-                    }
-                    .preview-image:hover {
-                        transform: scale(1.05);
-                    }
-                    .preview-timestamp {
-                        position: absolute;
-                        bottom: 0.5rem;
-                        right: 0.5rem;
-                        background: rgba(0, 0, 0, 0.7);
-                        color: white;
-                        padding: 0.25rem 0.5rem;
-                        border-radius: 0.25rem;
-                        font-size: 0.875rem;
-                    }
-                    .preview-actions {
-                        display: flex;
-                        gap: 1rem;
-                        margin-top: 1rem;
-                        justify-content: center;
-                    }
-                    .preview-download-btn,
-                    .preview-info-btn {
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                        padding: 0.5rem 1rem;
-                        border-radius: 0.5rem;
-                        border: none;
-                        cursor: pointer;
-                        font-size: 0.875rem;
-                        transition: all 0.2s;
-                    }
-                    .preview-download-btn {
-                        background-color: var(--primary-color);
-                        color: white;
-                    }
-                    .preview-info-btn {
-                        background-color: var(--background-color);
-                        color: var(--text-primary);
-                        border: 1px solid var(--border-color);
-                    }
-                    .preview-download-btn:hover {
-                        background-color: var(--primary-hover);
-                    }
-                    .preview-info-btn:hover {
-                        background-color: var(--border-color);
-                    }
+            // 初始化视频播放器
+            if (task.status === 'completed') {
+                initVideoPlayer(`/api/task/${task.task_id}/video`);
+            }
+
+            // 标签切换功能
+            const tabs = modal.querySelectorAll('.preview-tab');
+            const contents = modal.querySelectorAll('.preview-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.dataset.tab;
                     
-                    /* 图片放大查看样式 */
-                    .fullscreen-image-overlay {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        background: rgba(0, 0, 0, 0.9);
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        z-index: 2000;
-                        opacity: 0;
-                        transition: opacity 0.3s ease;
-                    }
-                    .fullscreen-image-overlay.active {
-                        opacity: 1;
-                    }
-                    .fullscreen-image {
-                        max-width: 90%;
-                        max-height: 90vh;
-                        object-fit: contain;
-                        border-radius: 0.5rem;
-                        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-                        transform: scale(0.9);
-                        transition: transform 0.3s ease;
-                    }
-                    .fullscreen-image-overlay.active .fullscreen-image {
-                        transform: scale(1);
-                    }
-                    .fullscreen-close {
-                        position: absolute;
-                        top: 1rem;
-                        right: 1rem;
-                        color: white;
-                        font-size: 2rem;
-                        cursor: pointer;
-                        width: 40px;
-                        height: 40px;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        background: rgba(0, 0, 0, 0.5);
-                        border-radius: 50%;
-                        transition: background-color 0.2s;
-                    }
-                    .fullscreen-close:hover {
-                        background: rgba(255, 255, 255, 0.2);
-                    }
-                </style>
-            `;
+                    // 更新标签状态
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // 更新内容显示
+                    contents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === targetId) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
 
-            showModal('视频预览', content);
+            // 关闭模态框
+            closeButton.onclick = () => {
+                const video = document.getElementById('taskVideo');
+                if (video) {
+                    video.pause();
+                }
+                document.body.removeChild(modal);
+            };
+
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    const video = document.getElementById('taskVideo');
+                    if (video) {
+                        video.pause();
+                    }
+                    document.body.removeChild(modal);
+                }
+            };
+
+            // 添加ESC键关闭功能
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') {
+                    const video = document.getElementById('taskVideo');
+                    if (video) {
+                        video.pause();
+                    }
+                    document.body.removeChild(modal);
+                    document.removeEventListener('keydown', handleEsc);
+                }
+            };
+            document.addEventListener('keydown', handleEsc);
+
+            // 显示模态框
+            requestAnimationFrame(() => modal.classList.add('active'));
         })
         .catch(error => {
             console.error('获取预览图失败:', error);
@@ -829,22 +807,136 @@ function showFullImage(imageSrc) {
     const overlay = document.createElement('div');
     overlay.className = 'fullscreen-image-overlay';
     overlay.innerHTML = `
-        <img src="${imageSrc}" class="fullscreen-image" alt="预览图">
-        <div class="fullscreen-close">&times;</div>
+        <button class="fullscreen-close-btn">&times;</button>
+        <div class="fullscreen-image-container">
+            <img src="${imageSrc}" class="fullscreen-image" alt="预览图">
+        </div>
+        <div class="zoom-controls">
+            <button onclick="zoomImage('out')">
+                <i class="mdi mdi-minus"></i>
+            </button>
+            <span class="zoom-text">100%</span>
+            <button onclick="zoomImage('in')">
+                <i class="mdi mdi-plus"></i>
+            </button>
+            <button onclick="zoomImage('reset')">
+                <i class="mdi mdi-refresh"></i>
+            </button>
+        </div>
     `;
     
-    document.body.appendChild(overlay);
+    // 将overlay添加到modal-container内部
+    const modalContainer = document.querySelector('.modal-container');
+    modalContainer.appendChild(overlay);
     
-    // 添加关闭功能
+    // 图片拖动功能
+    const container = overlay.querySelector('.fullscreen-image-container');
+    const image = overlay.querySelector('.fullscreen-image');
+    let isDragging = false;
+    let startX, startY, translateX = 0, translateY = 0;
+    let currentScale = 1;
+    
+    // 更新缩放文本
+    const updateZoomText = () => {
+        const zoomText = overlay.querySelector('.zoom-text');
+        zoomText.textContent = `${Math.round(currentScale * 100)}%`;
+    };
+    
+    // 缩放功能
+    window.zoomImage = (action) => {
+        const minScale = 0.5;
+        const maxScale = 3;
+        const step = 0.2;
+        
+        switch(action) {
+            case 'in':
+                if (currentScale < maxScale) {
+                    currentScale = Math.min(currentScale + step, maxScale);
+                }
+                break;
+            case 'out':
+                if (currentScale > minScale) {
+                    currentScale = Math.max(currentScale - step, minScale);
+                }
+                break;
+            case 'reset':
+                currentScale = 1;
+                translateX = 0;
+                translateY = 0;
+                break;
+        }
+        
+        image.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+        updateZoomText();
+    };
+    
+    // 鼠标滚轮缩放
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY;
+        if (delta < 0) {
+            zoomImage('in');
+        } else {
+            zoomImage('out');
+        }
+    });
+    
+    // 拖动开始
+    container.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return; // 只响应左键
+        isDragging = true;
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+        image.classList.add('dragging');
+    });
+    
+    // 拖动中
+    container.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        translateX = e.clientX - startX;
+        translateY = e.clientY - startY;
+        image.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentScale})`;
+    });
+    
+    // 拖动结束
+    const endDrag = () => {
+        isDragging = false;
+        image.classList.remove('dragging');
+    };
+    container.addEventListener('mouseup', endDrag);
+    container.addEventListener('mouseleave', endDrag);
+    
+    // 双击重置
+    container.addEventListener('dblclick', () => {
+        zoomImage('reset');
+    });
+    
+    // 阻止事件冒泡
+    overlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+    
+    // 添加关闭按钮功能
+    const closeBtn = overlay.querySelector('.fullscreen-close-btn');
     const closeOverlay = () => {
         overlay.classList.remove('active');
-        setTimeout(() => overlay.remove(), 300);
+        setTimeout(() => {
+            overlay.remove();
+            delete window.zoomImage;
+        }, 300);
     };
     
-    overlay.querySelector('.fullscreen-close').onclick = closeOverlay;
-    overlay.onclick = (e) => {
-        if (e.target === overlay) closeOverlay();
-    };
+    closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeOverlay();
+    });
+    
+    // 点击图片容器外的区域关闭
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            closeOverlay();
+        }
+    });
     
     // 添加ESC键关闭功能
     const handleEsc = (e) => {
@@ -857,5 +949,148 @@ function showFullImage(imageSrc) {
     
     // 显示动画
     requestAnimationFrame(() => overlay.classList.add('active'));
+}
+
+// 视频播放相关功能
+function initVideoPlayer(videoPath) {
+    const video = document.getElementById('taskVideo');
+    if (!video) return;
+    
+    const source = video.querySelector('source');
+    if (!source) return;
+    
+    source.src = videoPath;
+    source.type = 'video/mp4';
+    
+    // 重新加载视频
+    video.load();
+    
+    // 添加错误处理
+    video.onerror = function() {
+        console.error('视频加载失败:', video.error);
+        const errorMessages = {
+            1: '视频加载被中止',
+            2: '网络错误',
+            3: '视频解码错误',
+            4: '视频格式不支持'
+        };
+        alert(`视频加载失败: ${errorMessages[video.error.code] || '未知错误'}`);
+    };
+    
+    // 添加加载状态处理
+    video.onloadstart = function() {
+        console.log('开始加载视频...');
+    };
+    
+    video.oncanplay = function() {
+        console.log('视频可以开始播放');
+    };
+}
+
+function togglePlayPause() {
+    const video = document.getElementById('taskVideo');
+    if (video.paused) {
+        video.play();
+    } else {
+        video.pause();
+    }
+}
+
+function toggleMute() {
+    const video = document.getElementById('taskVideo');
+    video.muted = !video.muted;
+    const muteButton = document.querySelector('.video-controls button:nth-child(2) i');
+    muteButton.className = video.muted ? 'mdi mdi-volume-off' : 'mdi mdi-volume-high';
+}
+
+function toggleFullscreen() {
+    const videoContainer = document.querySelector('.video-player');
+    if (!document.fullscreenElement) {
+        if (videoContainer.requestFullscreen) {
+            videoContainer.requestFullscreen();
+        } else if (videoContainer.webkitRequestFullscreen) {
+            videoContainer.webkitRequestFullscreen();
+        } else if (videoContainer.msRequestFullscreen) {
+            videoContainer.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// 修改预览模态框的显示逻辑
+function showPreviewModal(task) {
+    const modalTemplate = document.getElementById('previewModalTemplate');
+    const modalContent = modalTemplate.content.cloneNode(true);
+    document.body.appendChild(modalContent);
+
+    const modal = document.querySelector('.modal-overlay');
+    const closeButton = modal.querySelector('.modal-close');
+    const previewGrid = modal.querySelector('.preview-grid');
+    const filename = modal.querySelector('.filename');
+
+    // 设置文件名
+    filename.textContent = task.filename;
+
+    // 加载预览图
+    task.previews.forEach((preview, index) => {
+        const img = document.createElement('img');
+        img.src = preview;
+        img.alt = `Preview ${index + 1}`;
+        img.onclick = () => showFullImage(preview);
+        previewGrid.appendChild(img);
+    });
+
+    // 初始化视频播放器
+    if (task.status === 'completed') {
+        initVideoPlayer(`/static/downloads/${task.task_id}/${task.filename}`);
+    }
+
+    // 标签切换功能
+    const tabs = modal.querySelectorAll('.preview-tab');
+    const contents = modal.querySelectorAll('.preview-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetId = tab.dataset.tab;
+            
+            // 更新标签状态
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // 更新内容显示
+            contents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === targetId) {
+                    content.classList.add('active');
+                }
+            });
+        });
+    });
+
+    // 关闭模态框
+    closeButton.onclick = () => {
+        const video = document.getElementById('taskVideo');
+        if (video) {
+            video.pause();
+        }
+        document.body.removeChild(modal);
+    };
+
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            const video = document.getElementById('taskVideo');
+            if (video) {
+                video.pause();
+            }
+            document.body.removeChild(modal);
+        }
+    };
 }
  

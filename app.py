@@ -1,8 +1,17 @@
-from flask import Flask, render_template, send_from_directory
+from flask import (
+    Flask,
+    render_template,
+    send_from_directory,
+    request,
+    jsonify,
+    send_file,
+)
 from flask_cors import CORS
 import logging
 import os
 import sys
+import mimetypes
+import json
 
 # 添加当前目录到Python路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -50,6 +59,52 @@ def create_app():
     def serve_temp(filename):
         """提供temp目录下的文件访问"""
         return send_from_directory("temp", filename)
+
+    @app.route("/api/task/<task_id>/video")
+    def serve_video(task_id):
+        """提供视频文件访问"""
+        try:
+            # 首先尝试从info.json获取文件名
+            info_path = os.path.join("temp", task_id, "info.json")
+            if os.path.exists(info_path):
+                with open(info_path, "r") as f:
+                    info = json.load(f)
+                    if "format" in info and "filename" in info["format"]:
+                        video_file = info["format"]["filename"]
+                        video_path = os.path.join("temp", task_id)
+                        full_path = os.path.join(video_path, video_file)
+                        if os.path.exists(full_path):
+                            logger.info(f"从info.json找到视频文件: {full_path}")
+                            return send_from_directory(video_path, video_file)
+
+            # 如果info.json不存在或没有找到文件名，尝试默认的output.mp4
+            video_path = os.path.join("temp", task_id)
+            video_file = "output.mp4"
+            full_path = os.path.join(video_path, video_file)
+
+            logger.info(f"尝试访问视频文件: {full_path}")
+
+            if not os.path.exists(video_path):
+                logger.error(f"视频目录不存在: {video_path}")
+                return jsonify({"error": "视频目录不存在"}), 404
+
+            if not os.path.exists(full_path):
+                logger.error(f"视频文件不存在: {full_path}")
+                return jsonify({"error": "视频文件不存在"}), 404
+
+            # 获取文件的MIME类型
+            mime_type, _ = mimetypes.guess_type(video_file)
+            if not mime_type:
+                mime_type = "video/mp4"  # 默认MIME类型
+
+            logger.info(f"提供视频文件: {full_path}, MIME类型: {mime_type}")
+            return send_from_directory(
+                video_path, video_file, mimetype=mime_type, as_attachment=False
+            )
+
+        except Exception as e:
+            logger.error(f"视频访问错误: {str(e)}")
+            return jsonify({"error": str(e)}), 500
 
     return app
 
