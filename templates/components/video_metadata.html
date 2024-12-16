@@ -1,0 +1,61 @@
+{% macro render_video_metadata() %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">视频信息</h5>
+        <form id="metadataForm" class="needs-validation" novalidate>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="title">标题</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="resolution">分辨率</label>
+                    <input type="text" class="form-control" id="resolution" name="resolution" readonly>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="episode">集数</label>
+                    <input type="number" class="form-control" id="episode" name="episode" min="0">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="season">季数</label>
+                    <input type="number" class="form-control" id="season" name="season" min="0">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="year">年份</label>
+                    <input type="number" class="form-control" id="year" name="year" min="1900">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">描述</label>
+                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="tags">标签</label>
+                <input type="text" class="form-control" id="tags" name="tags" placeholder="使用逗号分隔">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="codec">编码</label>
+                    <input type="text" class="form-control" id="codec" name="codec" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="duration">时长</label>
+                    <input type="text" class="form-control" id="duration" name="duration" readonly>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="bitrate">码率</label>
+                    <input type="text" class="form-control" id="bitrate" name="bitrate" readonly>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">保存信息</button>
+        </form>
+    </div>
+</div>
+{% endmacro %} 

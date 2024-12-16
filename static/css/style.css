@@ -1,0 +1,395 @@
+/* 基础样式 */
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --danger-color: #dc2626;
+    --danger-hover: #b91c1c;
+    --success-color: #16a34a;
+    --success-hover: #15803d;
+    --warning-color: #f59e0b;
+    --warning-hover: #d97706;
+    --background-color: #f9fafb;
+    --card-background: #ffffff;
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --border-color: #e5e7eb;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background-color: var(--background-color);
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    background: var(--card-background);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+/* 消息提示 */
+.message {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    background: var(--card-background);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    display: none;
+}
+
+.message.success {
+    color: var(--success-color);
+    border-left: 4px solid var(--success-color);
+}
+
+.message.error {
+    color: var(--danger-color);
+    border-left: 4px solid var(--danger-color);
+}
+
+.message.warning {
+    color: var(--warning-color);
+    border-left: 4px solid var(--warning-color);
+}
+
+/* 表单样式 */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    font-size: 1rem;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: var(--primary-hover);
+}
+
+/* 任务列表样式 */
+.task-list {
+    margin-top: 2rem;
+}
+
+.task-list h2 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.task-item {
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.task-title {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.task-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.task-status.pending {
+    background-color: #f3f4f6;
+    color: var(--text-secondary);
+}
+
+.task-status.downloading {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.task-status.completed {
+    background-color: #dcfce7;
+    color: var(--success-color);
+}
+
+.task-status.failed {
+    background-color: #fee2e2;
+    color: var(--danger-color);
+}
+
+.task-status.paused {
+    background-color: #fef3c7;
+    color: var(--warning-color);
+}
+
+.task-progress {
+    margin: 0.5rem 0;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 0.5rem;
+    background-color: var(--border-color);
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.task-info {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
+}
+
+.task-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.task-actions button {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.75rem;
+}
+
+/* 对话框样式 */
+.preview-dialog,
+.info-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.preview-content,
+.info-content {
+    background: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-item label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.info-item span {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.preview-content img {
+    max-height: 70vh;
+    object-fit: contain;
+    margin-bottom: 1rem;
+}
+
+.preview-content button,
+.info-content button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.preview-content button:hover,
+.info-content button:hover {
+    background: var(--primary-hover);
+}
+
+.auto-scroll-btn {
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.auto-scroll-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.auto-scroll-btn i {
+    font-size: 1.125rem;
+}
+
+/* 模态框样式 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-container {
+    background: var(--card-background);
+    padding: 2rem;
+    border-radius: 0.75rem;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active .modal-container {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 1.5rem;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+.modal-body {
+    margin-bottom: 1.5rem;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.info-item {
+    padding: 1rem;
+    background: var(--background-color);
+    border-radius: 0.5rem;
+}
+
+.info-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-weight: 500;
+} 

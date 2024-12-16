@@ -1,0 +1,106 @@
+{% macro render_download_form() %}
+<style>
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: border-color 0.2s ease;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    button,
+    input[type="submit"] {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    button:hover,
+    input[type="submit"]:hover {
+        background: var(--primary-hover);
+    }
+
+    .encryption-info {
+        background: var(--background-color);
+        padding: 1.25rem;
+        margin: 1rem 0;
+        border-radius: 0.5rem;
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .encryption-info .info-text {
+        color: var(--text-secondary);
+        margin: 0;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .encryption-info ul {
+        margin: 0.75rem 0 0 1.25rem;
+        padding: 0;
+    }
+
+    .encryption-info li {
+        margin: 0.5rem 0;
+        color: var(--text-secondary);
+    }
+</style>
+
+<form id="download-form" onsubmit="return handleDownload(event)">
+    <div class="form-group">
+        <textarea name="m3u8_url" placeholder="请输入M3U8地址（每行一个地址）" required rows="5"></textarea>
+    </div>
+    <div class="form-group">
+        <input type="text" name="filename" placeholder="自定义文件名（可选）">
+    </div>
+    <div class="form-group">
+        <select name="format_type">
+            <option value="mp4">MP4</option>
+            <option value="mkv">MKV</option>
+            <option value="ts">TS</option>
+        </select>
+    </div>
+    <div class="encryption-info">
+        <p class="info-text">
+            注意：系统支持自动解密 AES-128-CBC 加密的流。以下选项仅在以下情况下需要填写：
+            <ul>
+                <li>M3U8 文件中未提供密钥信息时</li>
+                <li>需要覆盖默认的密钥信息时</li>
+                <li>需要使用自定义 IV 时</li>
+            </ul>
+        </p>
+    </div>
+    <div class="form-group">
+        <input type="text" name="key_url" placeholder="密钥URL（可选，用于AES-128-CBC加密）">
+    </div>
+    <div class="form-group">
+        <input type="text" name="iv" placeholder="IV（可选，用于AES-128-CBC加密）">
+    </div>
+    <div class="form-group">
+        <button type="submit">开始下载</button>
+    </div>
+</form>
+{% endmacro %} 

@@ -1,24 +1,45 @@
-version: '3'
+version: '3.8'
 services:
   m3u8-downloader:
     build: .
+    ports:
+      - "7101:7101"
     volumes:
       - ./temp:/app/temp
       - ./uploads:/app/uploads
-      - ./templates:/app/templates
       - ./static:/app/static
+      - ./templates:/app/templates
+      - ./services:/app/services
+      - ./models:/app/models
+      - ./routes:/app/routes
+      - ./handlers:/app/handlers
+      - ./config.py:/app/config.py
       - ./app.py:/app/app.py
-      - ./database.py:/app/database.py
-      - ./data:/app/data
     environment:
-      - FLASK_ENV=development
       - FLASK_APP=app.py
+      - FLASK_ENV=development
       - FLASK_DEBUG=1
-      - FLASK_RUN_HOST=0.0.0.0
-      - FLASK_RUN_PORT=7101
-      - PYTHONUNBUFFERED=1
-      - DATABASE_PATH=/app/data/downloads.db
-    ports:
-      - "7101:7101"
+      - PYTHONPATH=/app
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ymbox
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - postgres
     restart: unless-stopped
-    command: python -u app.py
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=ymbox
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

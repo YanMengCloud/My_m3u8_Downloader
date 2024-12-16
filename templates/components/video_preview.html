@@ -1,0 +1,14 @@
+{% macro render_video_preview() %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">视频预览</h5>
+        <div id="previewContainer" class="text-center">
+            <img id="previewImage" class="img-fluid d-none" alt="视频预览">
+            <div id="previewPlaceholder" class="text-muted">
+                <i class="fas fa-film fa-3x mb-2"></i>
+                <p>开始下载后将显示预览</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %} 

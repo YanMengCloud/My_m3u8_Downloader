@@ -1,0 +1,150 @@
+{% macro render_settings() %}
+<style>
+    .settings-panel {
+        background: var(--background-color);
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border-radius: 0.75rem;
+    }
+
+    .settings-panel h2 {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .settings-item {
+        display: flex;
+        align-items: center;
+        margin: 1rem 0;
+        gap: 1rem;
+    }
+
+    .settings-item label {
+        min-width: 200px;
+        color: var(--text-secondary);
+    }
+
+    .resource-circle {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .resource-circle svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+
+    .resource-circle circle {
+        fill: none;
+        stroke-width: 8;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.5s ease;
+    }
+
+    .resource-circle .background {
+        stroke: var(--border-color);
+    }
+
+    .resource-circle .progress {
+        stroke: var(--primary-color);
+        stroke-dasharray: 301.59;  /* 2 * π * 48 (圆的周长) */
+        stroke-dashoffset: 301.59;
+        transition: stroke-dashoffset 0.5s ease;
+    }
+
+    .resource-circle.warning .progress {
+        stroke: #f59e0b;
+    }
+
+    .resource-circle.danger .progress {
+        stroke: var(--danger-color);
+    }
+
+    .resource-value {
+        position: absolute;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .resource-label {
+        position: absolute;
+        bottom: -25px;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        width: 100%;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .settings-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .settings-item label {
+            min-width: auto;
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+
+<div class="settings-panel">
+    <h2>系统设置</h2>
+    <div class="settings-item">
+        <label>最大并发下载数：</label>
+        <input type="number" id="max-concurrent" min="1" max="10" value="3">
+    </div>
+    <div class="settings-item">
+        <label>下载速度限制 (MB/s)：</label>
+        <input type="number" id="speed-limit" min="0" step="0.1" value="0">
+    </div>
+    <div class="settings-item">
+        <label>临时文件保留天数：</label>
+        <input type="number" id="cleanup-days" min="1" value="7">
+    </div>
+    <div class="settings-item">
+        <label>SSL证书验证：</label>
+        <input type="checkbox" id="verify-ssl" checked>
+    </div>
+    <div class="form-group">
+        <button onclick="saveSettings()">保存设置</button>
+    </div>
+</div>
+
+<div class="settings-panel">
+    <h2>系统资源使用情况</h2>
+    <div style="display: flex; justify-content: space-around; margin: 2rem 0;">
+        <div class="resource-circle" id="cpu-circle">
+            <svg viewBox="0 0 120 120">
+                <circle class="background" cx="60" cy="60" r="48"/>
+                <circle class="progress" cx="60" cy="60" r="48"/>
+            </svg>
+            <span class="resource-value">0%</span>
+            <span class="resource-label">CPU</span>
+        </div>
+        <div class="resource-circle" id="memory-circle">
+            <svg viewBox="0 0 120 120">
+                <circle class="background" cx="60" cy="60" r="48"/>
+                <circle class="progress" cx="60" cy="60" r="48"/>
+            </svg>
+            <span class="resource-value">0%</span>
+            <span class="resource-label">内存</span>
+        </div>
+        <div class="resource-circle" id="disk-circle">
+            <svg viewBox="0 0 120 120">
+                <circle class="background" cx="60" cy="60" r="48"/>
+                <circle class="progress" cx="60" cy="60" r="48"/>
+            </svg>
+            <span class="resource-value">0%</span>
+            <span class="resource-label">磁盘</span>
+        </div>
+    </div>
+</div>
+{% endmacro %} 

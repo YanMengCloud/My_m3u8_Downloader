@@ -1,0 +1,218 @@
+{% macro render_task_list() %}
+<style>
+    .task-list {
+        margin-top: 2rem;
+    }
+
+    .task-item {
+        background: var(--card-background);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .task-item:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .task-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1.125rem;
+        margin: 0;
+        word-break: break-all;
+    }
+
+    .task-url {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0.5rem 0;
+        word-break: break-all;
+    }
+
+    .task-status {
+        font-size: 0.875rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        background: var(--background-color);
+    }
+
+    .task-status.downloading {
+        color: var(--primary-color);
+        background: rgba(79, 70, 229, 0.1);
+    }
+
+    .task-status.completed {
+        color: var(--success-color);
+        background: rgba(22, 163, 74, 0.1);
+    }
+
+    .task-status.failed {
+        color: var(--danger-color);
+        background: rgba(220, 38, 38, 0.1);
+    }
+
+    .task-status.paused {
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+    }
+
+    .task-progress {
+        margin: 1rem 0;
+    }
+
+    .progress-bar {
+        height: 0.5rem;
+        background: var(--border-color);
+        border-radius: 0.25rem;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: var(--primary-color);
+        border-radius: 0.25rem;
+        transition: width 0.3s ease;
+    }
+
+    .task-info {
+        display: flex;
+        justify-content: space-between;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .task-actions button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .task-actions .pause-btn,
+    .task-actions .resume-btn {
+        background: var(--background-color);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .task-actions .cancel-btn {
+        background: var(--danger-color);
+        border: 1px solid var(--danger-color);
+        color: white;
+    }
+
+    .task-actions .delete-btn {
+        background: var(--background-color);
+        border: 1px solid var(--danger-color);
+        color: var(--danger-color);
+    }
+
+    .task-actions .preview-btn {
+        background: var(--background-color);
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .task-actions .info-btn {
+        background: var(--background-color);
+        border: 1px solid var(--warning-color);
+        color: var(--warning-color);
+    }
+
+    .task-actions .download-btn {
+        background: var(--success-color);
+        border: 1px solid var(--success-color);
+        color: white;
+    }
+
+    .task-actions button:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .task-actions button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .no-tasks {
+        text-align: center;
+        color: var(--text-secondary);
+        padding: 2rem;
+        background: var(--card-background);
+        border-radius: 0.75rem;
+        border: 2px dashed var(--border-color);
+    }
+</style>
+
+<div class="task-list">
+    <div id="taskList">
+        <!-- 任务列表将通过JavaScript动态添加 -->
+    </div>
+</div>
+
+<template id="taskItemTemplate">
+    <div class="task-item">
+        <div class="task-header">
+            <h3 class="task-title"></h3>
+            <span class="task-status"></span>
+        </div>
+        <div class="task-url"></div>
+        <div class="task-progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="task-info">
+                <span class="progress-text"></span>
+                <span class="speed-text"></span>
+                <span class="time-text"></span>
+            </div>
+        </div>
+        <div class="task-actions">
+            <button class="preview-btn" style="display: none;">
+                <i class="mdi mdi-eye"></i>预览
+            </button>
+            <button class="info-btn" style="display: none;">
+                <i class="mdi mdi-information"></i>信息
+            </button>
+            <button class="download-btn" style="display: none;">
+                <i class="mdi mdi-download"></i>下载
+            </button>
+            <button class="pause-btn" style="display: none;">
+                <i class="mdi mdi-pause"></i>暂停
+            </button>
+            <button class="resume-btn" style="display: none;">
+                <i class="mdi mdi-play"></i>继续
+            </button>
+            <button class="cancel-btn" style="display: none;">
+                <i class="mdi mdi-close"></i>取消
+            </button>
+            <button class="delete-btn" style="display: none;">
+                <i class="mdi mdi-delete"></i>删除
+            </button>
+        </div>
+    </div>
+</template>
+{% endmacro %} 
