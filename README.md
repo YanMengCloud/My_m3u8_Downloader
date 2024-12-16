@@ -104,7 +104,7 @@ python app.py
 - 可开关 SSL 证书验证
 
 <p align="center">
-    <img src="docs/images/settings.png" alt="Settings" width="800">
+    <img src="docs/images/v1.0.0/settings.png" alt="Settings" width="800">
 </p>
 
 ## 🔮 未来计划
@@ -180,7 +180,7 @@ python app.py
 
 ### 系统监控
 <p align="center">
-    <img src="docs/images/settings.png" alt="System Monitor" width="800">
+    <img src="docs/images/v1.0.0/settings.png" alt="System Monitor" width="800">
 </p>
 
 ## 📝 许可证
