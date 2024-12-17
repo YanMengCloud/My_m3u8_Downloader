@@ -1,38 +1,57 @@
 // 标签页管理
 document.addEventListener('DOMContentLoaded', () => {
-    const tabs = document.querySelectorAll('.tab');
+    // 获取所有标签按钮和内容面板
+    const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const targetId = tab.dataset.target;
-            
-            // 更新标签页状态
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // 更新内容区域
-            tabContents.forEach(content => {
-                if (content.id === targetId) {
-                    content.classList.add('active');
-                    // 如果是日志标签，启动日志更新
-                    if (targetId === 'logsTab') {
-                        startLogUpdates();
-                    }
-                } else {
-                    content.classList.remove('active');
-                    // 如果离开日志标签，停止日志更新
-                    if (content.id === 'logsTab') {
-                        stopLogUpdates();
-                    }
-                }
-            });
+
+    // 停止所有更新函数
+    function stopAllUpdates() {
+        if (typeof stopTaskUpdates === 'function') stopTaskUpdates();
+        if (typeof stopLogUpdates === 'function') stopLogUpdates();
+    }
+
+    // 标签切换函数
+    function switchTab(tabId) {
+        // 停止所有更新
+        stopAllUpdates();
+
+        // 更新按钮状态
+        tabButtons.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.tab === tabId) {
+                btn.classList.add('active');
+            }
+        });
+
+        // 更新内容面板显示
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+            if (content.id === tabId) {
+                content.style.display = 'block';
+            }
+        });
+
+        // 根据标签页启动相应的更新
+        if (tabId === 'downloadTab') {
+            if (typeof startTaskUpdates === 'function') startTaskUpdates();
+        } else if (tabId === 'logsTab') {
+            if (typeof startLogUpdates === 'function') startLogUpdates();
+        } else if (tabId === 'video-library') {
+            if (typeof updateVideoLibrary === 'function') updateVideoLibrary();
+        }
+    }
+
+    // 为每个标签按钮添加点击事件
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.dataset.tab;
+            switchTab(tabId);
         });
     });
-    
-    // 默认激活第一个标签
-    const firstTab = tabs[0];
+
+    // 初始化显示第一个标签页
+    const firstTab = tabButtons[0];
     if (firstTab) {
-        firstTab.click();
+        switchTab(firstTab.dataset.tab);
     }
 }); 

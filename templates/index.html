@@ -3,24 +3,32 @@
 {% from "components/task_list.html" import render_task_list %}
 {% from "components/settings.html" import render_settings %}
 {% from "components/logs.html" import render_logs %}
+{% from 'components/video_library.html' import render_video_library %}
 
 {% block content %}
-<div id="downloadTab" class="tab-content" style="display: block;">
+<div id="downloadTab" class="tab-content">
     {{ render_download_form() }}
     {{ render_task_list() }}
 </div>
 
-<div id="settingsTab" class="tab-content" style="display: none;">
+<div id="settingsTab" class="tab-content">
     {{ render_settings() }}
 </div>
 
-<div id="logsTab" class="tab-content" style="display: none;">
+<div id="logsTab" class="tab-content">
     {{ render_logs() }}
+</div>
+
+<div id="video-library" class="tab-content">
+    {{ render_video_library() }}
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/utils.js') }}"></script>
 <script src="{{ url_for('static', filename='js/task.js') }}"></script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 <script src="{{ url_for('static', filename='js/logs.js') }}"></script>
+<script src="{{ url_for('static', filename='js/video_library.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
 {% endblock %} 

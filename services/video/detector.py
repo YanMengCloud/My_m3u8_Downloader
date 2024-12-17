@@ -7,6 +7,7 @@ from pathlib import Path
 import logging
 import os
 import time
+import cv2
 
 logger = logging.getLogger(__name__)
 
@@ -17,22 +18,22 @@ class VideoDetector:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    def detect_from_file(self, file_path):
+    def detect_from_file(self, video_path: str) -> dict:
         """从文件中检测视频信息"""
         try:
-            if not os.path.exists(file_path):
-                self.logger.error(f"文件不存在: {file_path}")
+            if not os.path.exists(video_path):
+                self.logger.error(f"文件不存在: {video_path}")
                 return None
 
             # 确保文件可读
-            if not os.access(file_path, os.R_OK):
-                self.logger.error(f"文件无法读取: {file_path}")
+            if not os.access(video_path, os.R_OK):
+                self.logger.error(f"文件无法读取: {video_path}")
                 return None
 
-            self.logger.info(f"开始检测视频文件: {file_path}")
+            self.logger.info(f"开始检测视频文件: {video_path}")
 
             try:
-                probe = ffmpeg.probe(file_path)
+                probe = ffmpeg.probe(video_path)
             except ffmpeg._run.Error as e:
                 self.logger.error(f"FFprobe 检测失败: {str(e)}")
                 return None
@@ -42,8 +43,8 @@ class VideoDetector:
                 return None
 
             # 获取任务ID（从文件路径中提取）
-            task_id = os.path.basename(os.path.dirname(file_path))
-            task_dir = os.path.dirname(file_path)
+            task_id = os.path.basename(os.path.dirname(video_path))
+            task_dir = os.path.dirname(video_path)
 
             # 提取视频信息
             video_info = {
@@ -53,10 +54,10 @@ class VideoDetector:
                 "metadata": probe.get("format", {}).get("tags", {}),
             }
 
-            # 生成预览图
-            preview_path = self._generate_preview(file_path, task_id)
-            if preview_path:
-                video_info["preview_path"] = preview_path
+            # 生成预览图并记录时间戳信息
+            preview_info = self._generate_previews(video_path, video_info)
+            if preview_info:
+                video_info["preview_path"] = preview_info
 
             # 保存视频信息到JSON文件
             info_path = os.path.join(task_dir, "info.json")
@@ -72,7 +73,7 @@ class VideoDetector:
             return video_info
 
         except Exception as e:
-            self.logger.error(f"获取���频信息失败: {str(e)}", exc_info=True)
+            self.logger.error(f"获取视频信息失败: {str(e)}", exc_info=True)
             return None
 
     def _extract_technical_info(self, probe):
@@ -123,63 +124,47 @@ class VideoDetector:
             self.logger.error(f"计算FPS失败: {str(e)}")
             return 0
 
-    def _generate_preview(self, file_path, task_id):
-        """生成预览图"""
+    def _generate_previews(self, video_path: str, video_info: dict) -> dict:
+        """生成预览图并返回预览信息"""
         try:
-            # 使用任务目录下的preview目录
-            preview_dir = os.path.join(os.path.dirname(file_path), "preview")
+            task_id = os.path.basename(os.path.dirname(video_path))
+            preview_dir = os.path.join("temp", task_id, "preview")
             os.makedirs(preview_dir, exist_ok=True)
 
-            # 获取视频时长
-            probe = ffmpeg.probe(file_path)
-            duration = float(probe["format"]["duration"])
-
-            # 生成10张预览图，分别在视频的不同时间点
-            preview_paths = []
-            for i in range(10):
-                # 计算时间戳（在整个视频长度上均匀分布）
-                timestamp = duration * i / 9  # 使用9而不是10确保最后一帧在视频结尾
-                preview_path = os.path.join(preview_dir, f"preview_{timestamp:.1f}.jpg")
-
-                # 使用ffmpeg生成预览图
-                stream = ffmpeg.input(file_path, ss=timestamp)
-                stream = ffmpeg.filter(stream, "scale", 480, -1)
-                stream = ffmpeg.output(stream, preview_path, vframes=1)
-
-                try:
-                    ffmpeg.run(stream, capture_stdout=True, capture_stderr=True)
-                    if os.path.exists(preview_path):
-                        preview_paths.append(preview_path)
-                        self.logger.info(f"生成预览图成功: {preview_path}")
-                except ffmpeg.Error as e:
-                    self.logger.error(f"生成预览图失败: {str(e)}")
-                    continue
-
-            if preview_paths:
-                # 创建软链接到static目录
-                static_preview_dir = os.path.join("static/previews", task_id)
-                os.makedirs(static_preview_dir, exist_ok=True)
-
-                # 为每个预览图创建软链接
-                for preview_path in preview_paths:
-                    preview_name = os.path.basename(preview_path)
-                    static_preview_path = os.path.join(static_preview_dir, preview_name)
-
-                    # 如果已存在软链接，先删除
-                    if os.path.exists(static_preview_path):
-                        os.remove(static_preview_path)
-
-                    # 创建新的软链接
-                    os.symlink(os.path.abspath(preview_path), static_preview_path)
-
-                # 返回第一张预览图的Web访问路径
-                return (
-                    f"/static/previews/{task_id}/{os.path.basename(preview_paths[0])}"
-                )
-            else:
-                self.logger.error("没有成功生成任何预览图")
+            # 获取视频总时长
+            duration = float(video_info.get("technical_info", {}).get("duration", 0))
+            if not duration:
                 return None
 
+            # 生成10张预览图
+            preview_info = {}
+            cap = cv2.VideoCapture(video_path)
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+            for i in range(10):
+                # 计算时间戳
+                timestamp = (duration * i) / 9  # 平均分配时间点
+                frame_pos = int((total_frames * i) / 9)
+
+                # 设置帧位置
+                cap.set(cv2.CAP_PROP_POS_FRAMES, frame_pos)
+                ret, frame = cap.read()
+
+                if ret:
+                    preview_path = f"{task_id}/preview/preview_{i}.jpg"
+                    output_path = os.path.join("temp", preview_path)
+                    cv2.imwrite(output_path, frame)
+
+                    # 记录预览图信息
+                    preview_info[str(i)] = {
+                        "path": preview_path,
+                        "timestamp": timestamp,
+                    }
+
+            cap.release()
+
+            return preview_info
+
         except Exception as e:
-            self.logger.error(f"生成预览失败: {str(e)}")
+            logger.error(f"生成预览图失败: {str(e)}", exc_info=True)
             return None

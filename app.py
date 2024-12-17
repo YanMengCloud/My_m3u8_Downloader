@@ -20,7 +20,8 @@ from config import Config
 from routes.video import video_bp
 from routes.task import task_bp
 from routes.system import system_bp
-from models.database import Base, engine
+from models.database import Base, engine, Session
+from routes.video_library import video_library_bp
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -48,6 +49,7 @@ def create_app():
     app.register_blueprint(video_bp)
     app.register_blueprint(task_bp)
     app.register_blueprint(system_bp)
+    app.register_blueprint(video_library_bp)
 
     @app.route("/")
     def index():

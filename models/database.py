@@ -1,8 +1,17 @@
 from datetime import datetime
 import json
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, JSON
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    DateTime,
+    Float,
+    JSON,
+    ForeignKey,
+)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 import os
 
 Base = declarative_base()
@@ -76,4 +85,31 @@ class TaskModel(Base):
                 video_info.get("preview_path") if video_info else None
             ),  # 从视频信息中获取预览图路径
             "error_message": self.error_message,
+        }
+
+
+class VideoLibrary(Base):
+    __tablename__ = "video_library"
+
+    id = Column(Integer, primary_key=True)
+    task_id = Column(String, unique=True)  # 关联的任务ID
+    title = Column(String)  # 视频标题
+    original_filename = Column(String)  # 原始文件名
+    file_path = Column(String)  # 视频文件路径
+    preview_path = Column(String)  # 预览图文件夹路径
+    video_info = Column(JSON)  # 视频信息（分辨率、时长等）
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "task_id": self.task_id,
+            "title": self.title,
+            "original_filename": self.original_filename,
+            "file_path": self.file_path,
+            "preview_path": self.preview_path,
+            "video_info": self.video_info,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

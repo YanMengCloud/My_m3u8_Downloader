@@ -146,6 +146,12 @@
         color: white;
     }
 
+    .task-actions .add-to-library-btn {
+        background: var(--success-color);
+        border: 1px solid var(--success-color);
+        color: white;
+    }
+
     .task-actions button:hover {
         opacity: 0.9;
         transform: translateY(-1px);
@@ -447,7 +453,7 @@
         border-radius: 0.75rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         width: 80vw;  /* 默认宽度为视窗宽度的80% */
-        height: 80vh; /* 默认高度为视窗高���的80% */
+        height: 80vh; /* 默认高度为视窗高的80% */
         min-width: 800px; /* 最小宽度 */
         min-height: 600px; /* 最小高度 */
         position: relative;
@@ -587,6 +593,9 @@
             </button>
             <button class="download-btn" style="display: none;">
                 <i class="mdi mdi-download"></i>下载
+            </button>
+            <button class="add-to-library-btn" style="display: none;">
+                <i class="mdi mdi-plus-box"></i>添加至视频库
             </button>
             <button class="pause-btn" style="display: none;">
                 <i class="mdi mdi-pause"></i>暂停
