@@ -323,13 +323,10 @@ function showLibraryPreview(video) {
 
     const modal = document.querySelector('.modal-overlay');
     const closeButton = modal.querySelector('.modal-close');
-    const previewGrid = modal.querySelector('.preview-grid');
-    const videoPlayer = document.getElementById('libraryVideo');
+    const previewList = modal.querySelector('.preview-list');
+    const videoPlayer = modal.querySelector('#libraryVideo');
 
-    // 清空预览网格内容
-    if (previewGrid) {
-        previewGrid.innerHTML = '';
-    }
+    console.log('Video player element:', videoPlayer); // 添加调试日志
 
     // 设置视频源
     if (videoPlayer) {
@@ -338,44 +335,71 @@ function showLibraryPreview(video) {
             source.src = `/static/${video.file_path}`;
             source.type = 'video/mp4';
             videoPlayer.load();
+            
+            // 添加视频加载事件监听
+            videoPlayer.addEventListener('loadeddata', () => {
+                console.log('Video loaded successfully');
+            });
+
+            videoPlayer.addEventListener('error', (e) => {
+                console.error('Video load error:', videoPlayer.error);
+            });
+        } else {
+            console.error('Video source or file path missing:', { source, filePath: video.file_path });
         }
+    } else {
+        console.error('Video player element not found');
     }
 
     // 加载预览图
     const previewPaths = video.video_info?.preview_path || {};
     
-    if (previewGrid) {
+    if (previewList) {
         // 如果没有预览图数据，显示提示信息
         if (Object.keys(previewPaths).length === 0) {
             const noPreviewMsg = document.createElement('div');
             noPreviewMsg.className = 'no-preview-message';
             noPreviewMsg.innerHTML = `
-                <i class="mdi mdi-image-off" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <i class="mdi mdi-image-off"></i>
                 <p>暂无预览图</p>
             `;
-            previewGrid.appendChild(noPreviewMsg);
+            previewList.appendChild(noPreviewMsg);
         } else {
             // 使用预览路径数据创建预览网格
             Object.entries(previewPaths).forEach(([index, data]) => {
                 const previewItem = document.createElement('div');
                 previewItem.className = 'preview-item';
                 
-                // 检查路径是否存在
                 if (!data.path) {
                     console.error('Preview path is undefined:', data);
                     return;
                 }
 
-                // 构建预览图路径
                 const imgSrc = `/static/video_library/${video.task_id}/preview/${data.path.split('/').pop()}`;
                 
                 previewItem.innerHTML = `
-                    <img src="${imgSrc}" alt="视频预览" class="preview-image" 
-                         onerror="this.onerror=null;this.src='/static/images/no-preview.png';"
-                         onclick="showFullImage('${imgSrc}')">
+                    <img src="${imgSrc}" alt="预览图" 
+                         onerror="this.onerror=null;this.src='/static/images/no-preview.png';">
                     <div class="preview-timestamp">${formatDuration(data.timestamp)}</div>
                 `;
-                previewGrid.appendChild(previewItem);
+
+                // 点击预览图时跳转到对应时间点
+                previewItem.onclick = () => {
+                    // 移除其他预览图的激活状态
+                    const allPreviews = previewList.querySelectorAll('.preview-item');
+                    allPreviews.forEach(item => item.classList.remove('active'));
+                    
+                    // 添加当前预览图的激活状态
+                    previewItem.classList.add('active');
+                    
+                    // 跳转到对应时间点
+                    if (videoPlayer) {
+                        videoPlayer.currentTime = data.timestamp;
+                        videoPlayer.play();
+                    }
+                };
+
+                previewList.appendChild(previewItem);
             });
         }
     }
