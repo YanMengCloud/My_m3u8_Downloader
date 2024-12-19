@@ -287,23 +287,28 @@ async function resumeTask(taskId) {
 }
 
 async function cancelTask(taskId) {
-    if (!confirm('确定要取消此任务吗？')) return;
     try {
         const response = await fetch(`/api/task/${taskId}/cancel`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            method: 'POST'
         });
+        
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || '取消任务失败');
+        
+        if (!response.ok) {
+            throw new Error(data.error || '取消任务失败');
+        }
+        
         if (data.status === 'success') {
             // 立即更新任务列表
             updateTasks();
+            showToast('success', '任务已取消');
+        } else {
+            throw new Error(data.error || '取消任务失败');
         }
     } catch (error) {
         console.error('取消任务失败:', error);
-        alert(error.message);
+        showToast('error', error.message);
+        throw error;
     }
 }
 
@@ -376,7 +381,7 @@ document.addEventListener('visibilitychange', () => {
 
 // 显示模态框
 function showModal(title, content) {
-    // 创建模态框
+    // 创��模态框
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
@@ -549,7 +554,7 @@ function showPreview(task) {
     // 清空预览网格内容
     previewGrid.innerHTML = '';
 
-    // 修改视频源设置逻辑
+    // 修改视频源���置逻辑
     if (videoPlayer && task.video_metadata?.format?.filename) {
         const source = videoPlayer.querySelector('source');
         if (source) {

@@ -4,8 +4,8 @@ from handlers.task_handler import (
     start_download_task,
     get_task_status,
     get_all_tasks,
-    cancel_task,
-    pause_task,
+    cancel_task_handler,
+    pause_task_handler,
     resume_task,
 )
 from models.database import get_session, TaskModel
@@ -70,27 +70,29 @@ def get_task_info(task_id):
 
 
 @task_bp.route("/<task_id>/cancel", methods=["POST"])
-def cancel_task_route(task_id):
+def cancel_task(task_id):
     """取消任务"""
     try:
-        if cancel_task(task_id):
-            return jsonify({"status": "success"})
-        else:
-            return jsonify({"error": "任务不存在或无法取消"}), 404
+        if not cancel_task_handler(task_id):
+            return jsonify({"status": "error", "error": "任务不存在或无法取消"}), 404
+
+        return jsonify({"status": "success", "message": "任务已取消"})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"取消任务失败: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 
 @task_bp.route("/<task_id>/pause", methods=["POST"])
-def pause_task_route(task_id):
+def pause_task(task_id):
     """暂停任务"""
     try:
-        if pause_task(task_id):
-            return jsonify({"status": "success"})
-        else:
-            return jsonify({"error": "任务不存在或无法暂停"}), 404
+        if not pause_task_handler(task_id):
+            return jsonify({"status": "error", "error": "任务不存在或无法暂停"}), 404
+
+        return jsonify({"status": "success", "message": "任务已暂停"})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"暂停任务失败: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "error": str(e)}), 500
 
 
 @task_bp.route("/<task_id>/resume", methods=["POST"])

@@ -142,7 +142,7 @@ def get_all_tasks() -> Dict[str, Dict]:
         return {}
 
 
-def cancel_task(task_id: str) -> bool:
+def cancel_task_handler(task_id: str) -> bool:
     """取消任务"""
     try:
         task = download_tasks.get(task_id)
@@ -150,13 +150,22 @@ def cancel_task(task_id: str) -> bool:
         try:
             task_model = session.query(TaskModel).filter_by(id=task_id).first()
             if not task_model:
+                logger.warning(f"任务不存在: {task_id}")
+                return False
+
+            if task_model.status not in ["downloading", "pending", "paused"]:
+                logger.warning(f"任务状态不允许取消: {task_model.status}")
                 return False
 
             if task:
                 task.cancel()
+            else:
+                logger.warning(f"内存中任务不存在，尝试从数据库更新状态: {task_id}")
 
             task_model.status = "cancelled"
+            task_model.end_time = datetime.now()
             session.commit()
+            logger.info(f"任务已取消: {task_id}")
             return True
         finally:
             session.close()
@@ -165,7 +174,7 @@ def cancel_task(task_id: str) -> bool:
         return False
 
 
-def pause_task(task_id: str) -> bool:
+def pause_task_handler(task_id: str) -> bool:
     """暂停任务"""
     try:
         task = download_tasks.get(task_id)
@@ -173,13 +182,21 @@ def pause_task(task_id: str) -> bool:
         try:
             task_model = session.query(TaskModel).filter_by(id=task_id).first()
             if not task_model:
+                logger.warning(f"任务不存在: {task_id}")
+                return False
+
+            if task_model.status not in ["downloading"]:
+                logger.warning(f"任务状态不允许暂停: {task_model.status}")
                 return False
 
             if task:
                 task.pause()
+            else:
+                logger.warning(f"内存中任务不存在，尝试从数据库更新状态: {task_id}")
 
             task_model.status = "paused"
             session.commit()
+            logger.info(f"任务已暂停: {task_id}")
             return True
         finally:
             session.close()

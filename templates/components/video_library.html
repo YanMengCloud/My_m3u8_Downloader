@@ -450,17 +450,9 @@
     }
 
     .library-preview-modal #libraryVideo {
-        width: 90%;
-        max-width: 1200px;
-        height: auto;
-        max-height: 90%;
-        object-fit: contain;
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        width: 100%; /* 使视频宽度占满容器 */
+        height: 100%; /* 使视频高度占满容器 */
+        object-fit: contain; /* 保持纵横比 */
     }
 
     .library-preview-modal .preview-item img {
@@ -606,7 +598,7 @@
     }
 
     /* 修改视频播放器容器样式 */
-    .library-preview-modal .video-player-container {
+    .library-preview-modal {
         flex: 1;
         background: var(--background-color);
         display: flex;
@@ -614,22 +606,30 @@
         height: 100%;
     }
 
+    .video-player-container {
+        flex: 1; /* 使其占满可用空间 */
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* 确保占满父容器 */
+    }
+
     /* 修改视频播放区域样式 */
     .video-player-wrapper {
-        flex: 1;
-        background: #000;
+        flex: 1; /* 使其自适应 */
         display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        position: relative;
+        align-items: center; /* 垂直居中 */
+        justify-content: center; /* 水平居中 */
+        position: relative; /* 允许绝对定位的子元素 */
+        height: 100%; /* 确保占满父容器 */
+        overflow: hidden; /* 防止溢出 */
     }
 
     /* Plyr播放器样式定制 */
     .plyr {
-        width: 90%;
-        max-width: 1200px;
-        height: auto;
+        width: 100%; /* 播放器宽度 */
+        height: 100%; /* 播放器高度 */
+        display: flex; /* 允许子元素自适应 */
+        flex-direction: column; /* 垂直排列 */
         --plyr-color-main: var(--primary-color);
         --plyr-video-background: #000;
         --plyr-menu-background: var(--card-background);
@@ -639,8 +639,16 @@
     }
 
     .plyr video {
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        width: 100%; /* 使视频宽度占满 */
+        height: 100%; /* 使视频高度占满 */
+        object-fit: contain; /* 保持比例并完全显示视频 */
+    }
+
+    /* 针对海报图的样式 */
+    .plyr__poster {
+        width: 100%; /* 使海报图宽度占满 */
+        height: 100%; /* 使海报图高度占满 */
+        object-fit: contain; /* 保持比例并完全显示视频 */
     }
 
     /* 移除之前的视频控制样式 */
