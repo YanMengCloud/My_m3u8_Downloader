@@ -47,3 +47,4 @@ docker-compose.override.yml
 .DS_Store
 Thumbs.db 
 .test.txt
+static/video_library/
