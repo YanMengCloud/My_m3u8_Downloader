@@ -117,6 +117,9 @@ def update_video(video_id):
         data = request.get_json()
         if "title" in data:
             video.title = data["title"]
+        if "thumbnail_index" in data:
+            # 更新封面图索引
+            video.thumbnail_index = data["thumbnail_index"]
 
         video.updated_at = datetime.utcnow()
         session.commit()
@@ -166,23 +169,32 @@ def download_library_previews(video_id):
             if not video:
                 return jsonify({"error": "视频不存在"}), 404
 
-            preview_dir = os.path.join("static", video.preview_path)
+            # 使用预览图目录
+            preview_dir = os.path.join(
+                "static", "video_library", video.task_id, "preview"
+            )
             if not os.path.exists(preview_dir):
                 return jsonify({"error": "预览图目录不存在"}), 404
 
-            # 创建临时zip文件
-            temp_dir = os.path.join("temp", "downloads")
-            os.makedirs(temp_dir, exist_ok=True)
-            zip_path = os.path.join(temp_dir, f"previews_{video.task_id}.zip")
+            # 在预览目录下创建压缩文件
+            video_dir = os.path.join("static", "video_library", video.task_id)
+            zip_path = os.path.join(video_dir, "previews.zip")
 
             # 压缩预览图文件夹
+            if os.path.exists(zip_path):
+                os.remove(zip_path)  # 如果存在旧的压缩包，先删除
             shutil.make_archive(zip_path[:-4], "zip", preview_dir)
+
+            # 确保文件存在
+            if not os.path.exists(zip_path):
+                return jsonify({"error": "创建压缩包失败"}), 500
 
             return send_file(
                 zip_path,
                 as_attachment=True,
-                download_name=f"previews_{video.task_id}.zip",
+                download_name="previews.zip",
                 mimetype="application/zip",
+                max_age=0,  # 禁用缓存
             )
         finally:
             session.close()
@@ -234,4 +246,31 @@ def download_library_info(video_id):
             session.close()
     except Exception as e:
         logger.error(f"下载视频信息失败: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@video_library_bp.route("/api/video-library/<int:video_id>/download_video")
+def download_video(video_id):
+    """下载视频文件"""
+    try:
+        session = Session()
+        try:
+            video = session.query(VideoLibrary).filter_by(id=video_id).first()
+            if not video:
+                return jsonify({"error": "视频不存在"}), 404
+
+            video_path = os.path.join("static", video.file_path)
+            if not os.path.exists(video_path):
+                return jsonify({"error": "视频文件不存在"}), 404
+
+            return send_file(
+                video_path,
+                as_attachment=True,
+                download_name=video.original_filename or f"video_{video.task_id}.mp4",
+                mimetype="video/mp4",
+            )
+        finally:
+            session.close()
+    except Exception as e:
+        logger.error(f"下载视频失败: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500

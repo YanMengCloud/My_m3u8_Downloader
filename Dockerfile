@@ -28,7 +28,7 @@ ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
 
-# 暴露端口
+# 暴露端口  
 EXPOSE 7101
 
 # 启动应用

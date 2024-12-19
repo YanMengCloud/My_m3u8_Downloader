@@ -293,25 +293,27 @@
         justify-content: center;
         align-items: center;
         padding: 1rem;
+        height: 100%;
+        overflow: hidden;
     }
 
     .video-player {
         width: 100%;
         max-width: 1000px;
         height: 100%;
-        max-height: calc(100vh - 250px); /* 减去头部和底部的高度 */
+        max-height: calc(80vh - 120px);
         background: #000;
         border-radius: 0.5rem;
         overflow: hidden;
         display: flex;
         align-items: center;
-        justify-content: center;
     }
 
     .video-player video {
         width: 100%;
         height: 100%;
         object-fit: contain;
+        max-height: 100%;
     }
 
     /* 预览操作按钮样式 */
@@ -559,6 +561,31 @@
         border-radius: 0 0 0.75rem 0;
         pointer-events: none;
     }
+
+    /* 模态框内容区域样式 */
+    .modal-content {
+        max-height: 80vh;  /* 设置最大高度为视窗高度的80% */
+        overflow-y: auto;  /* 添加垂直滚动条 */
+    }
+
+    /* 美化滚动条 */
+    .modal-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .modal-content::-webkit-scrollbar-track {
+        background: var(--background);
+        border-radius: 4px;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb:hover {
+        background: var(--text-color);
+    }
 </style>
 
 <div class="task-list">
@@ -632,7 +659,7 @@
 
                 <div id="preview-images" class="preview-content active">
                     <div class="preview-grid">
-                        <!-- 预览图将在这里动态添加 -->
+                        <!-- 预览图将在这里动���添加 -->
                     </div>
                 </div>
 

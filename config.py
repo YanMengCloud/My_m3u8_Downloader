@@ -47,3 +47,19 @@ class Config:
         app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 限制上传文件大小为16MB
         app.config["UPLOAD_FOLDER"] = cls.UPLOAD_FOLDER
         app.config["STATIC_FOLDER"] = cls.STATIC_FOLDER
+
+    @staticmethod
+    def get_max_concurrent_downloads():
+        return Config.get_setting("max_concurrent_downloads", 3)
+
+    @staticmethod
+    def get_download_speed_limit():
+        return Config.get_setting("download_speed_limit", 0)
+
+    @staticmethod
+    def get_temp_file_days():
+        return Config.get_setting("temp_file_days", 7)
+
+    @staticmethod
+    def get_ssl_verify():
+        return Config.get_setting("ssl_verify", True)

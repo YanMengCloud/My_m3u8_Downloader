@@ -362,7 +362,7 @@ async function updateTasks() {
     }
 }
 
-// 页面加载��开始更新
+// 页面加载开始更新
 document.addEventListener('DOMContentLoaded', startTaskUpdates);
 
 // 页面隐藏时停止更新

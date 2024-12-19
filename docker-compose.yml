@@ -26,7 +26,8 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
   postgres:
@@ -35,11 +36,31 @@ services:
       - POSTGRES_DB=ymbox
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST_AUTH_METHOD=trust
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
+
+  debug:
+    build: .
+    command: python debug.py
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ymbox
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:

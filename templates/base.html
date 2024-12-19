@@ -6,6 +6,7 @@
     <title>M3U8 视频下载器</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.5.95/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -33,6 +34,7 @@
 
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html> 

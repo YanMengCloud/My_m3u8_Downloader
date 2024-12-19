@@ -12,8 +12,10 @@ import os
 import sys
 import mimetypes
 import json
+import time
+from sqlalchemy import text
 
-# 添加当前目录到Python路径
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from config import Config
@@ -39,6 +41,31 @@ def create_app():
 
     # 初始化配置
     Config.init_app(app)
+
+    # 确保必要的目录存在
+    os.makedirs(os.path.join("static", "video_library"), exist_ok=True)
+
+    # 等待数据库就绪
+    def wait_for_db():
+        max_retries = 30
+        retry_interval = 2
+
+        for i in range(max_retries):
+            try:
+                with engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+                    logger.info("数据库连接成功")
+                    break
+            except Exception as e:
+                if i < max_retries - 1:
+                    logger.warning(f"等待数据库就绪... ({i+1}/{max_retries})")
+                    time.sleep(retry_interval)
+                else:
+                    logger.error("数据库连接失败")
+                    raise
+
+    # 等待数据库
+    wait_for_db()
 
     # 确保数据库表存在
     logger.info("正在初始化数据库表...")

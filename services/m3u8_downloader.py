@@ -364,7 +364,7 @@ class M3U8Downloader:
                 os.remove(segments_file)
                 logger.info(f"删除segments.txt: {segments_file}")
 
-            # ���除分片文件
+            # 删除分片文件
             for segment in downloaded_segments:
                 try:
                     if os.path.exists(segment):

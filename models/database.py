@@ -17,7 +17,7 @@ import os
 Base = declarative_base()
 
 # 从环境变量获取数据库配置
-DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_HOST = os.getenv("DB_HOST", "postgres")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "ymbox")
 DB_USER = os.getenv("DB_USER", "postgres")
@@ -25,10 +25,13 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
 
 # 创建数据库引擎
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-engine = create_engine(DATABASE_URL)
-
-# 创建所有表
-Base.metadata.create_all(engine)
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={
+        "client_encoding": "utf8",
+        "application_name": "ymbox_m3u8_downloader",
+    },
+)
 
 # 创建会话工厂
 Session = sessionmaker(bind=engine)
@@ -100,6 +103,7 @@ class VideoLibrary(Base):
     video_info = Column(JSON)  # 视频信息（分辨率、时长等）
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    thumbnail_index = Column(Integer, default=0)  # 添加封面图索引字段
 
     def to_dict(self):
         return {
@@ -112,4 +116,5 @@ class VideoLibrary(Base):
             "video_info": self.video_info,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "thumbnail_index": self.thumbnail_index,
         }
