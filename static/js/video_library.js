@@ -309,59 +309,42 @@ function showThumbnailSelector(video, thumbnailImg) {
     };
     document.addEventListener('keydown', handleEsc);
 
-    // 显示模态框
+    // 显���模态框
     requestAnimationFrame(() => modal.classList.add('active'));
 }
 
 // 显示编辑标题模态框
 function showEditTitleModal(video) {
-    // 先移除可能存在的旧模态框
-    const existingModal = document.querySelector('.modal-overlay');
-    if (existingModal) {
-        existingModal.remove();
-    }
-
-    const modalHtml = `
-        <div class="modal-overlay">
-            <div class="edit-title-modal">
-                <h3>编辑视频标题</h3>
-                <input type="text" id="newTitle" value="${video.title || ''}" placeholder="输入新标题">
-                <div class="modal-actions">
-                    <button class="cancel-btn">取消</button>
-                    <button class="save-btn">保存</button>
-                </div>
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>编辑标题</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="title-input" value="${video.title || ''}" placeholder="请输入标题">
+            </div>
+            <div class="modal-footer">
+                <button class="save-btn">保存</button>
             </div>
         </div>
     `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-    const modal = document.querySelector('.modal-overlay');
-    const input = document.getElementById('newTitle');
-    const cancelBtn = modal.querySelector('.cancel-btn');
+  
+    const input = modal.querySelector('.title-input');
     const saveBtn = modal.querySelector('.save-btn');
-
-    // 设置初始焦点
-    setTimeout(() => input.focus(), 100);
-
-    const closeModal = () => {
-        modal.classList.add('fade-out');
-        setTimeout(() => modal.remove(), 200);
-    };
-
-    cancelBtn.onclick = closeModal;
-    modal.onclick = (e) => {
-        if (e.target === modal) closeModal();
-    };
-
+    const closeBtn = modal.querySelector('.modal-close');
+  
     saveBtn.onclick = async () => {
         const newTitle = input.value.trim();
         if (!newTitle) {
-            alert('标题不能为空');
+            showToast('error', '标题不能为空');
             return;
         }
-
+  
         try {
+            showLoading();
             const response = await fetch(`/api/video-library/${video.id}`, {
                 method: 'PUT',
                 headers: {
@@ -369,28 +352,51 @@ function showEditTitleModal(video) {
                 },
                 body: JSON.stringify({ title: newTitle })
             });
-
+  
             const data = await response.json();
             if (data.status === 'success') {
                 closeModal();
-                updateVideoLibrary();
+                // 重新获取最新的视频列表
+                await updateVideoLibrary();
+                showToast('success', '标题已更新');
             } else {
-                alert(data.error || '更新失败');
+                showToast('error', data.error || '更新失败');
             }
         } catch (error) {
             console.error('更新标题失败:', error);
-            alert('更新标题失败');
+            showToast('error', '更新标题失败');
+        } finally {
+            hideLoading();
         }
     };
+}
 
-    // 添加ESC键关闭功能
-    const handleEsc = (e) => {
-        if (e.key === 'Escape') {
-            closeModal();
-            document.removeEventListener('keydown', handleEsc);
+// 更新封面图
+async function updateThumbnail(videoId, index) {
+    try {
+        showLoading();
+        const response = await fetch(`/api/video-library/${videoId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ thumbnail_index: index })
+        });
+  
+        const data = await response.json();
+        if (data.status === 'success') {
+            // 重新获取最新的视频列表
+            await updateVideoLibrary();
+            showToast('success', '封面已更新');
+        } else {
+            showToast('error', data.error || '更新失败');
         }
-    };
-    document.addEventListener('keydown', handleEsc);
+    } catch (error) {
+        console.error('更新封面失败:', error);
+        showToast('error', '更新封面失败');
+    } finally {
+        hideLoading();
+    }
 }
 
 // 删除视频
@@ -814,4 +820,26 @@ function showToast(message, type = 'success') {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+
+// 搜索视频
+async function searchVideos(keyword) {
+    try {
+        showLoading();
+        const response = await fetch(`/api/video-library/search?keyword=${encodeURIComponent(keyword)}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            // 更新本地视频数据
+            allVideos = data.videos;
+            renderVideoGrid(data.videos);
+        } else {
+            showToast('error', data.error || '搜索失败');
+        }
+    } catch (error) {
+        console.error('搜索失败:', error);
+        showToast('error', '搜索失败');
+    } finally {
+        hideLoading();
+    }
 } 

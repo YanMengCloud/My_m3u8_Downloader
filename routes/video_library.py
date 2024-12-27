@@ -5,6 +5,7 @@ import shutil
 from datetime import datetime
 import logging
 import json
+from models.video_cache import video_cache
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +100,7 @@ def add_to_library(task_id):
         return jsonify({"status": "success", "video": video.to_dict()})
 
     except Exception as e:
-        logger.error(f"添加到视频库失败: {str(e)}", exc_info=True)
+        logger.error(f"添加到视频��失败: {str(e)}", exc_info=True)
         session.rollback()
         return jsonify({"status": "error", "error": str(e)}), 500
     finally:
@@ -108,29 +109,36 @@ def add_to_library(task_id):
 
 @video_library_bp.route("/api/video-library/<int:video_id>", methods=["PUT"])
 def update_video(video_id):
-    session = Session()
+    """更新视频信息"""
     try:
-        video = session.query(VideoLibrary).filter_by(id=video_id).first()
-        if not video:
-            return jsonify({"status": "error", "error": "视频不存在"}), 404
-
         data = request.get_json()
-        if "title" in data:
-            video.title = data["title"]
-        if "thumbnail_index" in data:
-            # 更新封面图索引
-            video.thumbnail_index = data["thumbnail_index"]
+        session = Session()
+        try:
+            video = session.query(VideoLibrary).filter_by(id=video_id).first()
+            if not video:
+                return jsonify({"error": "视频不存在"}), 404
 
-        video.updated_at = datetime.utcnow()
-        session.commit()
+            # 更新视频信息
+            if "title" in data:
+                video.title = data["title"]
+            if "thumbnail_index" in data:
+                video.thumbnail_index = data["thumbnail_index"]
 
-        return jsonify({"status": "success", "video": video.to_dict()})
+            video.updated_at = datetime.utcnow()
+            session.commit()
 
+            return jsonify(
+                {
+                    "status": "success",
+                    "message": "视频信息已更新",
+                    "video": video.to_dict(),
+                }
+            )
+        finally:
+            session.close()
     except Exception as e:
-        session.rollback()
-        return jsonify({"status": "error", "error": str(e)}), 500
-    finally:
-        session.close()
+        logger.error(f"更新视频信息失败: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
 
 
 @video_library_bp.route("/api/video-library/<int:video_id>", methods=["DELETE"])
@@ -149,6 +157,9 @@ def delete_video(video_id):
         # 删除数据库记录
         session.delete(video)
         session.commit()
+
+        # 从缓存中删除
+        video_cache.delete(video_id)
 
         return jsonify({"status": "success"})
 
@@ -273,4 +284,34 @@ def download_video(video_id):
             session.close()
     except Exception as e:
         logger.error(f"下载视频失败: {str(e)}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@video_library_bp.route("/api/video-library/search")
+def search_videos():
+    """搜索视频"""
+    try:
+        keyword = request.args.get("keyword", "").strip()
+        session = Session()
+        try:
+            query = session.query(VideoLibrary)
+            if keyword:
+                query = query.filter(VideoLibrary.title.ilike(f"%{keyword}%"))
+            videos = query.all()
+
+            # 从数据库获取最新数据
+            results = [video.to_dict() for video in videos]
+
+            # 更新缓存
+            try:
+                for video_data in results:
+                    video_cache.set(video_data["id"], video_data)
+            except Exception as e:
+                logger.error(f"更新缓存失败: {str(e)}", exc_info=True)
+
+            return jsonify({"status": "success", "videos": results})
+        finally:
+            session.close()
+    except Exception as e:
+        logger.error(f"搜索视频失败: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500

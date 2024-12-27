@@ -117,12 +117,15 @@ python app.py
 ### 用户体验改进
 - [ ] 添加深色模式支持
 - [ ] 支持拖拽排序下载任务
+- [ ] 添加下载完成通知（桌面/邮件）
+- [ ] 支持自定义主题
+- [ ] 优化移动端适配
 - [ ] 添加多语言支持
 
 ### 高级功能
-- [x] 集成在线视频预览
+- [ ] 集成在线视频预览
 - [ ] 添加用户系统和权限管理
-- [x] 支持自动识别视频信息    
+- [x] 支持自动识别视频信息
 - [x] 集成视频元数据编辑
 - [ ] 添加智能任务调度
 
@@ -144,8 +147,7 @@ python app.py
   - 批量下载功能
   - 实时进度显示
 
-### v1.1.0 (2024-12-15)
-- [README](docs/readme_version/README_v1.1.0.md)
+### v1.1.0 (2024-12-)
 - ✨ 基础功能实现：
   - 添加视频预览图生成功能
   - 支持预览图放大查看
@@ -153,18 +155,6 @@ python app.py
 - 🚀 性能优化：
   - 优化下载速度
   - 减少内存占用
-  - 提升稳定性
-- 🎨 界面改进：
-  - 改进任务管理界面
-
-### v1.2.0 (2024-12-27)
-- [README](docs/readme_version/README_v1.2.0.md)
-- ✨ 基础功能实现：
-  - 添加视频进视频库
-  - 视频库支持元信息查看
-  - 视频库支持预览图点击视频进度跳转
-- 🚀 性能优化：
-  - 优化下载速度
   - 提升稳定性
 - 🎨 界面改进：
   - 改进任务管理界面
@@ -179,21 +169,18 @@ python app.py
 
 ### 主界面
 <p align="center">
-    <img src="docs/images/v1.2.0/img_1.png" alt="Main UI" width="800">
+    <img src="docs/images/v1.1.0/main.png" alt="Main UI" width="800">
 </p>
 <p align="center">
-    <img src="docs/images/v1.2.0/img_2.png" alt="Main UI" width="800">
+    <img src="docs/images/v1.1.0/main1.png" alt="Main UI" width="800">
 </p>
 <p align="center">
-    <img src="docs/images/v1.2.0/img_3.png" alt="Main UI" width="800">
-</p>
-<p align="center">
-    <img src="docs/images/v1.2.0/img_4.png" alt="Main UI" width="800">
+    <img src="docs/images/v1.1.0/main2.png" alt="Main UI" width="800">
 </p>
 
 ### 系统监控
 <p align="center">
-    <img src="docs/images/v1.0.0/settings.png" alt="System Monitor" width="800">
+    <img src="docs/images/settings.png" alt="System Monitor" width="800">
 </p>
 
 ## 📝 许可证
